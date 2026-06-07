@@ -1,14 +1,17 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QTableView, QHeaderView, QMessageBox,
-    QComboBox, QSlider, QTabWidget
+    QComboBox, QSlider, QTabWidget, QFrame
 )
 from PyQt6.QtCore import Qt, QAbstractTableModel, pyqtSignal, QObject
 from PyQt6.QtGui import QColor, QBrush
 from PyQt6.QtWidgets import QFileDialog
-from scapy.config import conf
+
+# НОВЕ: Прямий імпорт функції збору інтерфейсів Windows
+from scapy.arch.windows import get_windows_if_list
 
 from src.gui.training_tab import TrainingTab
+
 
 class SignalEmitter(QObject):
     result_ready = pyqtSignal(dict)
@@ -19,33 +22,43 @@ class TrafficTableModel(QAbstractTableModel):
         super().__init__()
         self._data = data or []
         self._headers = ["Flow ID", "Протокол", "Пакети", "Байти", "Прогноз", "Ймовірність", "Ризик"]
+        self.current_threshold = 0.90  # Ініціалізація відстеження порогу
 
     def data(self, index, role):
         if not index.isValid(): return None
         row_data = self._data[index.row()]
         col = index.column()
 
+        prob = float(row_data.get("probability", 0.0))
+        is_ddos = prob >= self.current_threshold
+
         if role == Qt.ItemDataRole.DisplayRole:
             keys = ["flow_id", "protocol", "packets", "bytes", "prediction", "probability", "risk_level"]
-            val = row_data[keys[col]]
-            if keys[col] == "probability": return f"{val:.2%}"
-            return str(val)
+            key = keys[col]
+
+            # Текст генерується на льоту замість використання старих значень
+            if key == "probability":
+                return f"{prob:.2%}"
+            elif key == "prediction":
+                return "DDoS" if is_ddos else "Норма"
+            elif key == "risk_level":
+                if is_ddos:
+                    return "Критичний"
+                elif prob >= 0.5:
+                    return "Середній"
+                else:
+                    return "Низький"
+
+            return str(row_data.get(key, ""))
 
         elif role == Qt.ItemDataRole.ForegroundRole:
             return QBrush(QColor(Qt.GlobalColor.black))
 
-
         elif role == Qt.ItemDataRole.BackgroundRole:
-            prediction = row_data.get("prediction", "")
-            risk = str(row_data.get("risk_level", "")).upper()
-            prob = float(row_data.get("probability", 0.0))
-            # 1. Червоний (Критичний): якщо мережа класифікувала потік як DDoS,
-            if prediction == "DDoS" or any(w in risk for w in ["КРИТИЧ", "CRITICAL", "ВИСОК", "HIGH"]):
+            if is_ddos:
                 return QBrush(QColor(255, 200, 200))
-                # 2. Жовтий (Підозрілий): якщо ймовірність атаки вище 50% (але менше порогу),
-            elif prob >= 0.5 or any(w in risk for w in ["СЕРЕДН", "MEDIUM", "ПІДОЗР", "SUSPICIOUS"]):
+            elif prob >= 0.5:
                 return QBrush(QColor(255, 255, 200))
-                # 3. Зелений (Нормальний трафік)
             return QBrush(QColor(200, 255, 200))
 
         return None
@@ -88,8 +101,19 @@ class MonitorTab(QWidget):
         control_layout = QHBoxLayout()
         self.lbl_interface = QLabel("Мережевий інтерфейс:")
         self.combo_interface = QComboBox()
-        interfaces = [iface.name for iface in conf.ifaces.values()]
-        self.combo_interface.addItems(sorted(list(set(interfaces))))
+        self.combo_interface.setMaximumWidth(400)
+
+        # ОНОВЛЕНО: Наповнення списку з використанням GUID
+        interfaces = get_windows_if_list()
+        for iface in interfaces:
+            if iface.get('ips') or "TP-LINK" in iface.get('description', ''):
+                display_name = f"{iface.get('name', 'Unknown')} - {iface.get('description', '')}"
+                guid = iface.get('guid')
+
+                # Додаємо префікс, який вимагає драйвер Npcap у Windows
+                npf_path = rf"\Device\NPF_{guid}"
+
+                self.combo_interface.addItem(display_name, npf_path)
 
         self.btn_start = QPushButton("▶ Запустити")
         self.btn_start.clicked.connect(self.start_monitoring)
@@ -105,6 +129,7 @@ class MonitorTab(QWidget):
         self.slider_threshold = QSlider(Qt.Orientation.Horizontal)
         self.slider_threshold.setRange(50, 99)
         self.slider_threshold.setValue(90)
+        self.slider_threshold.setMinimumWidth(150)
         self.slider_threshold.valueChanged.connect(self.update_threshold)
 
         control_layout.addWidget(self.lbl_interface)
@@ -112,7 +137,16 @@ class MonitorTab(QWidget):
         control_layout.addWidget(self.btn_start)
         control_layout.addWidget(self.btn_stop)
         control_layout.addWidget(self.btn_export)
-        control_layout.addSpacing(20)
+
+        # Відновлена лінія-розділювач
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.VLine)
+        separator.setFrameShadow(QFrame.Shadow.Sunken)
+
+        control_layout.addSpacing(15)
+        control_layout.addWidget(separator)
+        control_layout.addSpacing(15)
+
         control_layout.addWidget(self.lbl_threshold)
         control_layout.addWidget(self.slider_threshold)
 
@@ -122,7 +156,6 @@ class MonitorTab(QWidget):
         header = self.table_view.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
 
-        # === НОВЕ: Нижня панель статусів ===
         status_layout = QHBoxLayout()
 
         self.lbl_status = QLabel("Статус: Очікування...")
@@ -132,17 +165,13 @@ class MonitorTab(QWidget):
         self.lbl_threat_count.setStyleSheet("font-weight: bold; color: red; font-size: 14px;")
 
         status_layout.addWidget(self.lbl_status)
-        status_layout.addStretch()  # Розштовхує елементи по краях
+        status_layout.addStretch()
         status_layout.addWidget(self.lbl_threat_count)
 
         layout.addLayout(control_layout)
         layout.addWidget(self.table_view)
-        layout.addLayout(status_layout)  # Додаємо весь status_layout замість одного lbl_status
+        layout.addLayout(status_layout)
 
-    # ... (методи update_threshold та export_report залишаються без змін) ...
-    def update_threshold(self, value):
-        self.lbl_threshold.setText(f"Поріг тривоги: {value}%")
-        if self.engine: self.engine.threshold = value / 100.0
 
     def export_report(self):
         if not self.table_model._data:
@@ -163,14 +192,18 @@ class MonitorTab(QWidget):
                 QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти файл:\n{e}")
 
     def start_monitoring(self):
-        interface = self.combo_interface.currentText()
-        if not interface: return QMessageBox.warning(self, "Помилка", "Не знайдено інтерфейсів!")
+        # ОНОВЛЕНО: Витягуємо прихований ідентифікатор замість тексту
+        interface_guid = self.combo_interface.currentData()
+
+        if not interface_guid:
+            return QMessageBox.warning(self, "Помилка", "Не знайдено інтерфейсів!")
+
         try:
-            # === ОНОВЛЕНО: Очищуємо множину при новому запуску ===
             self.detected_ddos_flows.clear()
             self.lbl_threat_count.setText("Виявлено загроз: 0")
 
-            self.engine = self.engine_factory(interface)
+            # Передаємо GUID безпосередньо у двигун перехоплення
+            self.engine = self.engine_factory(interface_guid)
             self.engine.threshold = self.slider_threshold.value() / 100.0
             self.engine.on_result_ready = lambda data: self.emitter.result_ready.emit(data)
             self.engine.start()
@@ -189,33 +222,48 @@ class MonitorTab(QWidget):
         self.lbl_status.setText("Статус: Моніторинг зупинено.")
         self.lbl_status.setStyleSheet("font-weight: bold; color: gray;")
 
+    def update_threshold(self, value):
+        new_threshold = value / 100.0
+        self.lbl_threshold.setText(f"Поріг тривоги: {value}%")
+
+        if self.engine:
+            self.engine.threshold = new_threshold
+
+        # Передаємо нове значення у таблицю та примусово перемальовуємо її
+        self.table_model.current_threshold = new_threshold
+        self.table_model.layoutChanged.emit()
+
+        # Тотальний перерахунок історії унікальних загроз
+        self.detected_ddos_flows.clear()
+        for row in self.table_model._data:
+            if float(row.get("probability", 0.0)) >= new_threshold:
+                self.detected_ddos_flows.add(row["flow_id"])
+
+        self.lbl_threat_count.setText(f"Виявлено загроз: {len(self.detected_ddos_flows)}")
+
     def update_table(self, data: dict):
         self.table_model.add_row(data)
         self.table_view.scrollToBottom()
 
-        # === ВИПРАВЛЕНО: Рахуємо лише унікальні Flow ID ===
-        if data["prediction"] == "DDoS":
+        # Фіксація нової загрози відбувається за актуальним порогом екрана
+        prob = float(data.get("probability", 0.0))
+        if prob >= self.table_model.current_threshold:
             if data["flow_id"] not in self.detected_ddos_flows:
                 self.detected_ddos_flows.add(data["flow_id"])
                 self.lbl_threat_count.setText(f"Виявлено загроз: {len(self.detected_ddos_flows)}")
 
 
 class MainWindow(QMainWindow):
-    """Головне вікно з підтримкою вкладок."""
-
     def __init__(self, engine_factory):
         super().__init__()
         self.setWindowTitle("DDoS Detection System - Control Center")
         self.resize(1100, 700)
 
-        # Створюємо віджет вкладок
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
-        # Ініціалізуємо вкладки
         self.monitor_tab = MonitorTab(engine_factory)
         self.training_tab = TrainingTab()
 
-        # Додаємо вкладки у вікно
         self.tabs.addTab(self.monitor_tab, "Монітор Трафіку")
         self.tabs.addTab(self.training_tab, "Навчання Моделі")
