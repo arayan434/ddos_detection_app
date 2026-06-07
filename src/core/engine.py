@@ -3,9 +3,7 @@ import threading
 import csv
 from datetime import datetime
 from pathlib import Path
-import numpy as np
 from typing import Callable
-from queue import Queue
 from src.core.sniffer import LiveTrafficSniffer
 from src.detection.detector import DDoSDetector
 from src.utils.logger import log
@@ -37,7 +35,7 @@ class TrafficAnalyzerEngine:
     def _log_incident(self, data: dict):
         """Зберігає інформацію про виявлену атаку у CSV файл."""
         log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)  # Створює папку, якщо її немає
+        log_dir.mkdir(exist_ok=True)
 
         date_str = datetime.now().strftime("%Y-%m-%d")
         file_path = log_dir / f"incidents_{date_str}.csv"
@@ -47,7 +45,6 @@ class TrafficAnalyzerEngine:
             with open(file_path, mode='a', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 if not file_exists:
-                    # Записуємо заголовки, якщо файл створюється вперше
                     writer.writerow(["Час", "Flow ID", "Протокол", "Пакети", "Байти", "Прогноз", "Ймовірність"])
 
                 writer.writerow([
@@ -61,30 +58,33 @@ class TrafficAnalyzerEngine:
     def _inference_loop(self):
         while self._running:
             time.sleep(self.update_interval)
-            active_flow_ids = list(self.sniffer.active_flows.keys())
+
+            # Потокобезпечне отримання списку активних ідентифікаторів
+            active_flow_ids = self.sniffer.get_all_active_flow_ids()
 
             for flow_id in active_flow_ids:
-                flow = self.sniffer.active_flows.get(flow_id)
-                if not flow: continue
-                total_packets = flow.fwd_packets + flow.bwd_packets
+                # Потокобезпечне читання статистики та ознак
+                stats, features = self.sniffer.get_flow_stats_and_features(flow_id)
 
-                if total_packets < 5: continue
-                if time.time() - flow.last_packet_time > 30.0:
-                    del self.sniffer.active_flows[flow_id]
+                if not stats or not features is not None:
                     continue
 
-                features = flow.extract_features()
+                if stats["packets"] < 5:
+                    continue
+
                 result = self.detector.detect_realtime(features, threshold=self.threshold)
 
                 if result.get("status") == "success":
                     gui_data = {
-                        "flow_id": flow_id, "protocol": flow.protocol,
-                        "packets": total_packets, "bytes": flow.fwd_bytes + flow.bwd_bytes,
-                        "prediction": result["prediction"], "probability": result["probability"],
+                        "flow_id": flow_id,
+                        "protocol": stats["protocol"],
+                        "packets": stats["packets"],
+                        "bytes": stats["bytes"],
+                        "prediction": result["prediction"],
+                        "probability": result["probability"],
                         "risk_level": result["risk_level"]
                     }
 
-                    # === НОВЕ: Логування ===
                     if result["prediction"] == "DDoS":
                         self._log_incident(gui_data)
 

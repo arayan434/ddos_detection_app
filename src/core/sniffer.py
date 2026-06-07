@@ -1,12 +1,13 @@
 import time
+import threading
 import numpy as np
 from scapy.all import sniff, IP, TCP, UDP
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from src.utils.logger import log
 
 
 class NetworkFlow:
-    """Агрегує пакети та розраховує 48 статистичних ознак потоку."""
+    """Агрегує пакети та розраховує 48 статистичних ознак потоку з евристиками."""
 
     def __init__(self, flow_id: str, proto: int):
         self.flow_id = flow_id
@@ -31,7 +32,6 @@ class NetworkFlow:
         self.last_fwd_time = 0.0
         self.last_bwd_time = 0.0
 
-        # Прапорці TCP
         self.flags = {'FIN': 0, 'SYN': 0, 'PSH': 0, 'URG': 0, 'CWE': 0, 'ECE': 0}
         self.fwd_psh = 0
         self.bwd_psh = 0
@@ -42,18 +42,32 @@ class NetworkFlow:
         self.init_win_bwd = 0
         self.min_seg_fwd = -1
 
+        # Змінні для розрахунку Active / Idle
+        self.idle_threshold = 1.0  # Простій більше 1 секунди вважається Idle
+        self.current_active_start = self.start_time
+        self.active_times: List[float] = []
+        self.idle_times: List[float] = []
+
     def add_packet(self, pkt, direction: str, current_time: float):
         payload_len = len(pkt[IP].payload)
         header_len = len(pkt[IP]) - payload_len
 
-        # Фіксуємо IAT (Inter-Arrival Time)
+        # Фіксуємо IAT та розраховуємо фази активності
         if self.last_packet_time > 0 and self.last_packet_time != self.start_time:
-            self.all_iat.append(current_time - self.last_packet_time)
+            iat = current_time - self.last_packet_time
+            self.all_iat.append(iat)
+
+            # Евристика Active/Idle
+            if iat > self.idle_threshold:
+                self.idle_times.append(iat * 1e6)  # В мікросекундах
+                active_duration = (self.last_packet_time - self.current_active_start) * 1e6
+                if active_duration > 0:
+                    self.active_times.append(active_duration)
+                self.current_active_start = current_time
 
         self.last_packet_time = current_time
         self.all_pkt_lengths.append(payload_len)
 
-        # Обробка TCP специфіки
         if TCP in pkt:
             tcp_flags = pkt[TCP].flags
             if 'F' in tcp_flags: self.flags['FIN'] += 1
@@ -106,6 +120,10 @@ class NetworkFlow:
         duration = max(self.last_packet_time - self.start_time, 0.000001)
         duration_micro = duration * 1e6
 
+        # Динамічний розрахунок поточної фази активності
+        current_active = (self.last_packet_time - self.current_active_start) * 1e6
+        temp_active = self.active_times + [current_active] if current_active > 0 else self.active_times
+
         features = {
             'Protocol': self.protocol,
             'Flow Duration': duration_micro,
@@ -152,7 +170,6 @@ class NetworkFlow:
 
             'Down/Up Ratio': (self.bwd_packets / self.fwd_packets) if self.fwd_packets > 0 else 0,
 
-            # Апроксимація Bulk характеристик (складна імплементація для реал-тайму)
             'Fwd Avg Bytes/Bulk': 0.0,
             'Fwd Avg Packets/Bulk': 0.0,
             'Fwd Avg Bulk Rate': 0.0,
@@ -164,14 +181,13 @@ class NetworkFlow:
             'Init_Win_bytes_backward': self.init_win_bwd,
             'min_seg_size_forward': self.min_seg_fwd if self.min_seg_fwd != -1 else 0,
 
-            # Апроксимація Active/Idle
-            'Active Mean': 0.0,
-            'Active Std': 0.0,
-            'Active Max': 0.0,
-            'Idle Std': 0.0
+            # Заміна нулів на реальні евристики
+            'Active Mean': self._safe_stat(temp_active, 'mean'),
+            'Active Std': self._safe_stat(temp_active, 'std'),
+            'Active Max': self._safe_stat(temp_active, 'max'),
+            'Idle Std': self._safe_stat(self.idle_times, 'std')
         }
 
-        # Суворий порядок згідно з препроцесором
         expected_columns = [
             'Protocol', 'Flow Duration', 'Total Fwd Packets', 'Total Backward Packets',
             'Fwd Packet Length Max', 'Fwd Packet Length Min', 'Fwd Packet Length Std',
@@ -197,6 +213,12 @@ class LiveTrafficSniffer:
         self.interface = interface
         self.active_flows: Dict[str, NetworkFlow] = {}
 
+        # Архітектурні запобіжники потокобезпеки
+        self.lock = threading.Lock()
+        self.flow_timeout = 60.0  # Секунди простою до видалення
+        self.max_concurrent_flows = 50000
+        self.last_cleanup = time.time()
+
     def _generate_flow_id(self, pkt) -> str:
         if IP not in pkt: return ""
         src, dst, proto = pkt[IP].src, pkt[IP].dst, pkt[IP].proto
@@ -208,36 +230,69 @@ class LiveTrafficSniffer:
 
         return f"{src}:{sport}-{dst}:{dport}-{proto}" if src > dst else f"{dst}:{dport}-{src}:{sport}-{proto}"
 
+    def _cleanup_inactive_flows(self, current_time: float):
+        """Звільняє пам'ять від розірваних або завислих з'єднань."""
+        if current_time - self.last_cleanup < 10.0:
+            return
+
+        self.last_cleanup = current_time
+        expired_flows = [
+            f_id for f_id, flow in self.active_flows.items()
+            if current_time - flow.last_packet_time > self.flow_timeout
+        ]
+
+        for f_id in expired_flows:
+            del self.active_flows[f_id]
+
+        if expired_flows:
+            log.debug(f"Очищення: видалено {len(expired_flows)} потоків. Активних: {len(self.active_flows)}")
+
     def _process_packet(self, pkt):
         if IP not in pkt: return
         flow_id = self._generate_flow_id(pkt)
         if not flow_id: return
 
         current_time = time.time()
-        if flow_id not in self.active_flows:
-            self.active_flows[flow_id] = NetworkFlow(flow_id, pkt[IP].proto)
-
         direction = 'fwd' if pkt[IP].src == flow_id.split(':')[0] else 'bwd'
-        self.active_flows[flow_id].add_packet(pkt, direction, current_time)
 
-    def get_flow_features(self, flow_id: str) -> np.ndarray:
-        if flow_id in self.active_flows:
-            return self.active_flows[flow_id].extract_features()
-        return None
+        with self.lock:
+            self._cleanup_inactive_flows(current_time)
+
+            if flow_id not in self.active_flows:
+                if len(self.active_flows) >= self.max_concurrent_flows:
+                    return  # Дроп пакету для захисту ОЗП
+                self.active_flows[flow_id] = NetworkFlow(flow_id, pkt[IP].proto)
+
+            self.active_flows[flow_id].add_packet(pkt, direction, current_time)
+
+    def get_all_active_flow_ids(self) -> List[str]:
+        """Потокобезпечне отримання ідентифікаторів."""
+        with self.lock:
+            return list(self.active_flows.keys())
+
+    def get_flow_stats_and_features(self, flow_id: str) -> Tuple[dict, np.ndarray]:
+        """Єдиний безпечний метод читання стану потоку для ядра."""
+        with self.lock:
+            flow = self.active_flows.get(flow_id)
+            if not flow: return None, None
+
+            stats = {
+                "protocol": flow.protocol,
+                "packets": flow.fwd_packets + flow.bwd_packets,
+                "bytes": flow.fwd_bytes + flow.bwd_bytes,
+                "last_packet_time": flow.last_packet_time
+            }
+            features = flow.extract_features()
+            return stats, features
 
     def start(self):
-        """Запускає процес перехоплення пакетів."""
         log.info(f"Початок перехоплення трафіку на інтерфейсі {self.interface}...")
         try:
-            # store=False критично важливо, щоб пакети не накопичувалися в ОЗП
             sniff(
                 iface=self.interface,
                 prn=self._process_packet,
                 store=False,
-                filter="ip"  # Захоплюємо лише IP-трафік
+                filter="ip"
             )
-        except PermissionError:
-            log.error("Помилка доступу: Для перехоплення мережевого трафіку необхідні права адміністратора!")
         except Exception as e:
             log.error(f"Критична помилка сніфера: {e}")
-            log.warning("Якщо ви на Windows, переконайтеся, що у вас встановлено Npcap (входить до складу Wireshark).")
