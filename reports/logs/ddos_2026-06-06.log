@@ -1,0 +1,202 @@
+2026-06-06 22:06:55 | INFO     | __main__:15 | Ініціалізація AI компонентів...
+2026-06-06 22:06:55 | INFO     | src.detection.detector:26 | Детектор ініціалізовано | Пристрій: cuda
+2026-06-06 22:06:55 | SUCCESS  | __main__:41 | AI компоненти успішно завантажено.
+2026-06-06 22:07:14 | INFO     | src.core.sniffer:230 | Початок перехоплення трафіку на інтерфейсі Ethernet...
+2026-06-06 22:07:14 | INFO     | src.core.engine:31 | Обчислювальне ядро успішно запущено.
+2026-06-06 22:07:32 | INFO     | src.core.engine:35 | Зупинка обчислювального ядра...
+2026-06-06 22:08:11 | INFO     | src.data.loader:64 | Використовується список файлів, обраний у графічному інтерфейсі.
+2026-06-06 22:08:11 | INFO     | src.data.loader:71 | Параметри завантаження | Кількість файлів: 3 | Частка вибірки: 2.00%
+2026-06-06 22:08:11 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_NTP.csv
+2026-06-06 22:08:25 | SUCCESS  | src.data.loader:36 | DrDoS_NTP.csv: 1,217,007 рядків → вибрано 24,340
+2026-06-06 22:08:25 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_LDAP.csv
+2026-06-06 22:08:45 | SUCCESS  | src.data.loader:36 | DrDoS_LDAP.csv: 2,181,542 рядків → вибрано 43,631
+2026-06-06 22:08:45 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_UDP.csv
+2026-06-06 22:11:20 | INFO     | __main__:15 | Ініціалізація AI компонентів...
+2026-06-06 22:11:20 | INFO     | src.detection.detector:26 | Детектор ініціалізовано | Пристрій: cuda
+2026-06-06 22:11:20 | SUCCESS  | __main__:41 | AI компоненти успішно завантажено.
+2026-06-06 22:11:46 | INFO     | src.data.loader:64 | Використовується список файлів, обраний у графічному інтерфейсі.
+2026-06-06 22:11:46 | INFO     | src.data.loader:71 | Параметри завантаження | Кількість файлів: 3 | Частка вибірки: 5.00%
+2026-06-06 22:11:46 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_NTP.csv
+2026-06-06 22:12:00 | SUCCESS  | src.data.loader:36 | DrDoS_NTP.csv: 1,217,007 рядків → вибрано 60,850
+2026-06-06 22:12:00 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_LDAP.csv
+2026-06-06 22:12:21 | SUCCESS  | src.data.loader:36 | DrDoS_LDAP.csv: 2,181,542 рядків → вибрано 109,077
+2026-06-06 22:12:21 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_UDP.csv
+2026-06-06 22:12:55 | SUCCESS  | src.data.loader:36 | DrDoS_UDP.csv: 3,136,802 рядків → вибрано 156,840
+2026-06-06 22:12:55 | SUCCESS  | src.data.loader:94 | Всього завантажено для навчання: 326,767 рядків
+2026-06-06 22:12:55 | INFO     | src.data.loader:95 | Розподіл класів у вибірці:
+ Label
+DrDoS_UDP     156737
+DrDoS_LDAP    108991
+DrDoS_NTP      60114
+BENIGN           925
+Name: count, dtype: int64
+2026-06-06 22:12:55 | INFO     | src.data.loader:102 | Видалено службових колонок: 9
+2026-06-06 22:12:56 | INFO     | src.data.preprocessor:180 | === Початок передобробки ===
+2026-06-06 22:12:56 | INFO     | src.data.preprocessor:21 | Назви колонок очищено від пробілів
+2026-06-06 22:12:56 | WARNING  | src.data.preprocessor:32 | Знайдено 8,790 NaN значень — замінюємо медіаною
+2026-06-06 22:12:56 | INFO     | src.data.preprocessor:35 | Некоректні значення оброблено
+2026-06-06 22:12:56 | INFO     | src.data.preprocessor:55 | Маппінг міток: {'DrDoS_NTP': 1, 'BENIGN': 0, 'DrDoS_LDAP': 1, 'DrDoS_UDP': 1}
+2026-06-06 22:12:56 | INFO     | src.data.preprocessor:56 | Розподіл: {1: 325842, 0: 925}
+2026-06-06 22:12:57 | INFO     | src.data.preprocessor:69 | Вибрано 78 ознак для навчання
+2026-06-06 22:13:01 | INFO     | src.data.preprocessor:95 | Видалено 24 корельованих ознак
+2026-06-06 22:13:01 | INFO     | src.data.preprocessor:96 | Залишилось 54 ознак
+2026-06-06 22:13:01 | INFO     | src.data.preprocessor:158 | Train: 228,736 | Val: 32,677 | Test: 65,354
+2026-06-06 22:13:01 | INFO     | src.data.preprocessor:110 | Ознаки нормалізовано (StandardScaler)
+2026-06-06 22:13:01 | INFO     | src.data.preprocessor:120 | До балансування: {1: 228089, 0: 647}
+2026-06-06 22:13:05 | INFO     | src.data.preprocessor:126 | Після балансування: {1: 228089, 0: 228089}
+2026-06-06 22:13:05 | SUCCESS  | src.data.preprocessor:177 | Дані збережено у D:\Projects\ddos_detection_app\data\splits
+2026-06-06 22:13:05 | SUCCESS  | src.data.preprocessor:200 | === Передобробка завершена ===
+2026-06-06 22:13:05 | INFO     | src.training.trainer:23 | Пристрій: cuda
+2026-06-06 22:13:05 | INFO     | src.training.trainer:25 | GPU: NVIDIA GeForce GTX 1650
+2026-06-06 22:13:07 | INFO     | src.training.trainer:114 | === Початок навчання ===
+2026-06-06 22:13:07 | INFO     | src.training.trainer:115 | Модель: CNN+LSTM Hybrid
+2026-06-06 22:13:07 | INFO     | src.training.trainer:116 | Епох: 10 | Batch: 256 | LR: 0.001
+2026-06-06 23:46:38 | INFO     | __main__:15 | Ініціалізація AI компонентів...
+2026-06-06 23:46:38 | INFO     | src.detection.detector:26 | Детектор ініціалізовано | Пристрій: cuda
+2026-06-06 23:46:38 | SUCCESS  | __main__:41 | AI компоненти успішно завантажено.
+2026-06-06 23:47:06 | INFO     | src.data.loader:64 | Використовується список файлів, обраний у графічному інтерфейсі.
+2026-06-06 23:47:06 | INFO     | src.data.loader:71 | Параметри завантаження | Кількість файлів: 1 | Частка вибірки: 5.00%
+2026-06-06 23:47:06 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_NTP.csv
+2026-06-06 23:47:20 | SUCCESS  | src.data.loader:36 | DrDoS_NTP.csv: 1,217,007 рядків → вибрано 60,850
+2026-06-06 23:47:20 | SUCCESS  | src.data.loader:94 | Всього завантажено для навчання: 60,850 рядків
+2026-06-06 23:47:20 | INFO     | src.data.loader:95 | Розподіл класів у вибірці:
+ Label
+DrDoS_NTP    60114
+BENIGN         736
+Name: count, dtype: int64
+2026-06-06 23:47:20 | INFO     | src.data.loader:102 | Видалено службових колонок: 9
+2026-06-06 23:47:20 | INFO     | src.data.preprocessor:180 | === Початок передобробки ===
+2026-06-06 23:47:20 | INFO     | src.data.preprocessor:21 | Назви колонок очищено від пробілів
+2026-06-06 23:47:20 | WARNING  | src.data.preprocessor:32 | Знайдено 696 NaN значень — замінюємо медіаною
+2026-06-06 23:47:20 | INFO     | src.data.preprocessor:35 | Некоректні значення оброблено
+2026-06-06 23:47:20 | INFO     | src.data.preprocessor:55 | Маппінг міток: {'DrDoS_NTP': 1, 'BENIGN': 0}
+2026-06-06 23:47:20 | INFO     | src.data.preprocessor:56 | Розподіл: {1: 60114, 0: 736}
+2026-06-06 23:47:20 | INFO     | src.data.preprocessor:69 | Вибрано 78 ознак для навчання
+2026-06-06 23:47:21 | INFO     | src.data.preprocessor:95 | Видалено 21 корельованих ознак
+2026-06-06 23:47:21 | INFO     | src.data.preprocessor:96 | Залишилось 57 ознак
+2026-06-06 23:47:21 | INFO     | src.data.preprocessor:158 | Train: 42,595 | Val: 6,085 | Test: 12,170
+2026-06-06 23:47:21 | INFO     | src.data.preprocessor:110 | Ознаки нормалізовано (StandardScaler)
+2026-06-06 23:47:21 | INFO     | src.data.preprocessor:120 | До балансування: {1: 42080, 0: 515}
+2026-06-06 23:47:23 | INFO     | src.data.preprocessor:126 | Після балансування: {1: 42080, 0: 42080}
+2026-06-06 23:47:23 | SUCCESS  | src.data.preprocessor:177 | Дані збережено у D:\Projects\ddos_detection_app\data\splits
+2026-06-06 23:47:23 | SUCCESS  | src.data.preprocessor:200 | === Передобробка завершена ===
+2026-06-06 23:47:23 | INFO     | src.training.trainer:25 | Пристрій: cuda
+2026-06-06 23:47:23 | INFO     | src.training.trainer:27 | GPU: NVIDIA GeForce GTX 1650
+2026-06-06 23:47:24 | INFO     | src.training.trainer:138 | === Початок навчання ===
+2026-06-06 23:47:24 | INFO     | src.training.trainer:139 | Модель: CNN+LSTM Hybrid
+2026-06-06 23:47:24 | INFO     | src.training.trainer:140 | Епох: 10 | Batch: 256 | LR: 0.001
+2026-06-06 23:47:36 | INFO     | src.training.trainer:172 | Епоха   1/10 | Loss: 0.0859 / 0.0301 | Acc: 0.9721 / 0.9885 | F1: 0.9717 / 0.9941
+2026-06-06 23:47:36 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 1)
+2026-06-06 23:47:47 | INFO     | src.training.trainer:172 | Епоха   2/10 | Loss: 0.0216 / 0.0371 | Acc: 0.9945 / 0.9965 | F1: 0.9945 / 0.9983
+2026-06-06 23:47:57 | INFO     | src.training.trainer:172 | Епоха   3/10 | Loss: 0.0228 / 0.0275 | Acc: 0.9939 / 0.9947 | F1: 0.9939 / 0.9973
+2026-06-06 23:47:57 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 3)
+2026-06-06 23:48:08 | INFO     | src.training.trainer:172 | Епоха   4/10 | Loss: 0.0180 / 0.0230 | Acc: 0.9953 / 0.9965 | F1: 0.9953 / 0.9983
+2026-06-06 23:48:08 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 4)
+2026-06-06 23:48:19 | INFO     | src.training.trainer:172 | Епоха   5/10 | Loss: 0.0164 / 0.0235 | Acc: 0.9966 / 0.9959 | F1: 0.9965 / 0.9979
+2026-06-06 23:48:30 | INFO     | src.training.trainer:172 | Епоха   6/10 | Loss: 0.0145 / 0.0181 | Acc: 0.9973 / 0.9965 | F1: 0.9973 / 0.9983
+2026-06-06 23:48:30 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 6)
+2026-06-06 23:48:40 | INFO     | src.training.trainer:172 | Епоха   7/10 | Loss: 0.0145 / 0.0245 | Acc: 0.9972 / 0.9959 | F1: 0.9972 / 0.9979
+2026-06-06 23:48:51 | INFO     | src.training.trainer:172 | Епоха   8/10 | Loss: 0.0137 / 0.0224 | Acc: 0.9975 / 0.9962 | F1: 0.9975 / 0.9981
+2026-06-06 23:49:03 | INFO     | src.training.trainer:172 | Епоха   9/10 | Loss: 0.0134 / 0.0219 | Acc: 0.9975 / 0.9956 | F1: 0.9975 / 0.9977
+2026-06-06 23:49:15 | INFO     | src.training.trainer:172 | Епоха  10/10 | Loss: 0.0123 / 0.0228 | Acc: 0.9978 / 0.9956 | F1: 0.9978 / 0.9977
+2026-06-06 23:49:15 | SUCCESS  | src.training.trainer:192 | === Навчання завершено ===
+2026-06-06 23:49:15 | SUCCESS  | src.training.trainer:216 | Історію навчання збережено: logs\training_history_hybrid_2026-06-06_23-49-15.csv
+2026-06-06 23:49:15 | INFO     | src.training.evaluator:40 | === Оцінка моделі ===
+2026-06-06 23:49:16 | INFO     | src.training.evaluator:55 | Accuracy:  0.9967
+2026-06-06 23:49:16 | INFO     | src.training.evaluator:56 | Precision: 1.0000
+2026-06-06 23:49:16 | INFO     | src.training.evaluator:57 | Recall:    0.9967
+2026-06-06 23:49:16 | INFO     | src.training.evaluator:58 | F1 Score:  0.9983
+2026-06-06 23:49:16 | INFO     | src.training.evaluator:59 | ROC-AUC:   0.9997
+2026-06-06 23:49:16 | INFO     | src.training.evaluator:60 | 
+              precision    recall  f1-score   support
+
+      BENIGN       0.79      1.00      0.88       147
+        DDoS       1.00      1.00      1.00     12023
+
+    accuracy                           1.00     12170
+   macro avg       0.89      1.00      0.94     12170
+weighted avg       1.00      1.00      1.00     12170
+
+2026-06-06 23:49:17 | SUCCESS  | src.utils.visualizer:103 | Графік збережено: D:\Projects\ddos_detection_app\reports\training_history.png
+2026-06-06 23:49:17 | SUCCESS  | src.utils.visualizer:145 | Динаміку метрик збережено: D:\Projects\ddos_detection_app\reports\epoch_metrics.png
+2026-06-06 23:49:17 | SUCCESS  | src.utils.visualizer:53 | Confusion matrix збережено: D:\Projects\ddos_detection_app\reports\confusion_matrix.png
+2026-06-06 23:49:27 | INFO     | __main__:15 | Ініціалізація AI компонентів...
+2026-06-06 23:49:27 | INFO     | src.detection.detector:26 | Детектор ініціалізовано | Пристрій: cuda
+2026-06-06 23:49:27 | SUCCESS  | __main__:41 | AI компоненти успішно завантажено.
+2026-06-06 23:55:02 | INFO     | __main__:15 | Ініціалізація AI компонентів...
+2026-06-06 23:55:02 | INFO     | src.detection.detector:26 | Детектор ініціалізовано | Пристрій: cuda
+2026-06-06 23:55:02 | SUCCESS  | __main__:41 | AI компоненти успішно завантажено.
+2026-06-06 23:55:23 | INFO     | src.data.loader:64 | Використовується список файлів, обраний у графічному інтерфейсі.
+2026-06-06 23:55:23 | INFO     | src.data.loader:71 | Параметри завантаження | Кількість файлів: 1 | Частка вибірки: 5.00%
+2026-06-06 23:55:23 | INFO     | src.data.loader:25 | Завантаження файлу: DrDoS_NTP.csv
+2026-06-06 23:55:36 | SUCCESS  | src.data.loader:36 | DrDoS_NTP.csv: 1,217,007 рядків → вибрано 60,850
+2026-06-06 23:55:36 | SUCCESS  | src.data.loader:94 | Всього завантажено для навчання: 60,850 рядків
+2026-06-06 23:55:36 | INFO     | src.data.loader:95 | Розподіл класів у вибірці:
+ Label
+DrDoS_NTP    60114
+BENIGN         736
+Name: count, dtype: int64
+2026-06-06 23:55:36 | INFO     | src.data.loader:102 | Видалено службових колонок: 9
+2026-06-06 23:55:36 | INFO     | src.data.preprocessor:180 | === Початок передобробки ===
+2026-06-06 23:55:36 | INFO     | src.data.preprocessor:21 | Назви колонок очищено від пробілів
+2026-06-06 23:55:36 | WARNING  | src.data.preprocessor:32 | Знайдено 696 NaN значень — замінюємо медіаною
+2026-06-06 23:55:36 | INFO     | src.data.preprocessor:35 | Некоректні значення оброблено
+2026-06-06 23:55:36 | INFO     | src.data.preprocessor:55 | Маппінг міток: {'DrDoS_NTP': 1, 'BENIGN': 0}
+2026-06-06 23:55:36 | INFO     | src.data.preprocessor:56 | Розподіл: {1: 60114, 0: 736}
+2026-06-06 23:55:36 | INFO     | src.data.preprocessor:69 | Вибрано 78 ознак для навчання
+2026-06-06 23:55:37 | INFO     | src.data.preprocessor:95 | Видалено 21 корельованих ознак
+2026-06-06 23:55:37 | INFO     | src.data.preprocessor:96 | Залишилось 57 ознак
+2026-06-06 23:55:37 | INFO     | src.data.preprocessor:158 | Train: 42,595 | Val: 6,085 | Test: 12,170
+2026-06-06 23:55:37 | INFO     | src.data.preprocessor:110 | Ознаки нормалізовано (StandardScaler)
+2026-06-06 23:55:37 | INFO     | src.data.preprocessor:120 | До балансування: {1: 42080, 0: 515}
+2026-06-06 23:55:40 | INFO     | src.data.preprocessor:126 | Після балансування: {1: 42080, 0: 42080}
+2026-06-06 23:55:40 | SUCCESS  | src.data.preprocessor:177 | Дані збережено у D:\Projects\ddos_detection_app\data\splits
+2026-06-06 23:55:40 | SUCCESS  | src.data.preprocessor:200 | === Передобробка завершена ===
+2026-06-06 23:55:40 | INFO     | src.training.trainer:25 | Пристрій: cuda
+2026-06-06 23:55:40 | INFO     | src.training.trainer:27 | GPU: NVIDIA GeForce GTX 1650
+2026-06-06 23:55:41 | INFO     | src.training.trainer:138 | === Початок навчання ===
+2026-06-06 23:55:41 | INFO     | src.training.trainer:139 | Модель: CNN+LSTM Hybrid
+2026-06-06 23:55:41 | INFO     | src.training.trainer:140 | Епох: 10 | Batch: 256 | LR: 0.001
+2026-06-06 23:55:52 | INFO     | src.training.trainer:172 | Епоха   1/10 | Loss: 0.0723 / 0.0277 | Acc: 0.9793 / 0.9906 | F1: 0.9793 / 0.9952
+2026-06-06 23:55:52 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 1)
+2026-06-06 23:56:02 | INFO     | src.training.trainer:172 | Епоха   2/10 | Loss: 0.0204 / 0.0275 | Acc: 0.9945 / 0.9906 | F1: 0.9944 / 0.9952
+2026-06-06 23:56:02 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 2)
+2026-06-06 23:56:13 | INFO     | src.training.trainer:172 | Епоха   3/10 | Loss: 0.0180 / 0.0226 | Acc: 0.9954 / 0.9965 | F1: 0.9954 / 0.9983
+2026-06-06 23:56:13 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 3)
+2026-06-06 23:56:25 | INFO     | src.training.trainer:172 | Епоха   4/10 | Loss: 0.0176 / 0.0258 | Acc: 0.9956 / 0.9954 | F1: 0.9956 / 0.9977
+2026-06-06 23:56:36 | INFO     | src.training.trainer:172 | Епоха   5/10 | Loss: 0.0168 / 0.0267 | Acc: 0.9961 / 0.9965 | F1: 0.9961 / 0.9983
+2026-06-06 23:56:46 | INFO     | src.training.trainer:172 | Епоха   6/10 | Loss: 0.0157 / 0.0242 | Acc: 0.9963 / 0.9965 | F1: 0.9963 / 0.9983
+2026-06-06 23:56:58 | INFO     | src.training.trainer:172 | Епоха   7/10 | Loss: 0.0167 / 0.0218 | Acc: 0.9966 / 0.9965 | F1: 0.9966 / 0.9983
+2026-06-06 23:56:58 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 7)
+2026-06-06 23:57:08 | INFO     | src.training.trainer:172 | Епоха   8/10 | Loss: 0.0149 / 0.0216 | Acc: 0.9970 / 0.9965 | F1: 0.9970 / 0.9983
+2026-06-06 23:57:08 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 8)
+2026-06-06 23:57:19 | INFO     | src.training.trainer:172 | Епоха   9/10 | Loss: 0.0149 / 0.0203 | Acc: 0.9972 / 0.9965 | F1: 0.9972 / 0.9983
+2026-06-06 23:57:19 | SUCCESS  | src.training.trainer:185 | Нова найкраща модель збережена (епоха 9)
+2026-06-06 23:57:30 | INFO     | src.training.trainer:172 | Епоха  10/10 | Loss: 0.0177 / 0.0243 | Acc: 0.9964 / 0.9954 | F1: 0.9964 / 0.9977
+2026-06-06 23:57:30 | SUCCESS  | src.training.trainer:192 | === Навчання завершено ===
+2026-06-06 23:57:30 | SUCCESS  | src.training.trainer:216 | Історію навчання збережено: logs\training_history_hybrid_2026-06-06_23-57-30.csv
+2026-06-06 23:57:30 | INFO     | src.training.evaluator:40 | === Оцінка моделі ===
+2026-06-06 23:57:31 | INFO     | src.training.evaluator:55 | Accuracy:  0.9952
+2026-06-06 23:57:31 | INFO     | src.training.evaluator:56 | Precision: 1.0000
+2026-06-06 23:57:31 | INFO     | src.training.evaluator:57 | Recall:    0.9951
+2026-06-06 23:57:31 | INFO     | src.training.evaluator:58 | F1 Score:  0.9975
+2026-06-06 23:57:31 | INFO     | src.training.evaluator:59 | ROC-AUC:   0.9996
+2026-06-06 23:57:31 | INFO     | src.training.evaluator:60 | 
+              precision    recall  f1-score   support
+
+      BENIGN       0.71      1.00      0.83       147
+        DDoS       1.00      1.00      1.00     12023
+
+    accuracy                           1.00     12170
+   macro avg       0.86      1.00      0.92     12170
+weighted avg       1.00      1.00      1.00     12170
+
+2026-06-06 23:57:32 | SUCCESS  | src.utils.visualizer:105 | Графік базової динаміки збережено: D:\Projects\ddos_detection_app\reports\training_history.png
+2026-06-06 23:57:32 | SUCCESS  | src.utils.visualizer:158 | Графік розширених метрик збережено: D:\Projects\ddos_detection_app\reports\epoch_metrics.png
+2026-06-06 23:57:32 | SUCCESS  | src.utils.visualizer:53 | Confusion matrix збережено: D:\Projects\ddos_detection_app\reports\confusion_matrix.png
+2026-06-06 23:57:43 | INFO     | __main__:15 | Ініціалізація AI компонентів...
+2026-06-06 23:57:43 | INFO     | src.detection.detector:26 | Детектор ініціалізовано | Пристрій: cuda
+2026-06-06 23:57:43 | SUCCESS  | __main__:41 | AI компоненти успішно завантажено.
+2026-06-06 23:58:49 | INFO     | src.core.sniffer:230 | Початок перехоплення трафіку на інтерфейсі Ethernet...
+2026-06-06 23:58:49 | INFO     | src.core.engine:31 | Обчислювальне ядро успішно запущено.
+2026-06-07 00:03:27 | INFO     | src.core.engine:35 | Зупинка обчислювального ядра...

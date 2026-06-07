@@ -1,0 +1,41 @@
+data:
+  processed_path: data/processed/
+  raw_files:
+  - D:\Projects\ddos_detection_app\data\raw\UDPLag.csv
+  - D:\Projects\ddos_detection_app\data\raw\Syn.csv
+  - D:\Projects\ddos_detection_app\data\raw\DrDoS_NTP.csv
+  - D:\Projects\ddos_detection_app\data\raw\DrDoS_LDAP.csv
+  - D:\Projects\ddos_detection_app\data\raw\DrDoS_SSDP.csv
+  - D:\Projects\ddos_detection_app\data\raw\DrDoS_UDP.csv
+  raw_path: data/raw/
+  sample_rate: 20.0
+  splits_path: data/splits/
+  test_size: 0.2
+  val_size: 0.1
+features:
+  n_features: 48
+  sequence_length: 10
+logging:
+  level: INFO
+  log_path: reports/logs/
+model:
+  batch_size: 64
+  dropout: 0.3
+  epochs: 50
+  hidden_size: 128
+  learning_rate: 0.001
+  num_layers: 2
+  type: hybrid
+project:
+  name: DDoS Detection
+  seed: 42
+  version: 1.0.0
+streamlit:
+  theme: dark
+  title: DDoS Detection Dashboard
+training:
+  batch_size: 128
+  checkpoint_path: saved_models/
+  device: auto
+  early_stopping_patience: 5
+  num_epochs: 50
